@@ -1,16 +1,33 @@
-import { Observable, Subscriber } from "rxjs";
+import { Observable, Observer, Subscriber } from "rxjs";
 
-//crear obser.
-// const obs$=Observable.create();
-const obs$ = new Observable<string>(subs => { //puede ir sin <string, pero se recomienda indicar con que tipo de datos trabajara
-    //para que un subscriber se ejecuta debe tener una subcripcion
-    subs.next('Hola')
-    subs.next('hola')
+const observer: Observer<any> = {
+    //el observer es una interfaz, nos obligara a establecer lo que se necesita para que sea un observer valido 
+    //Tenemos que agregar su tipo de dato que manejara <>
+    next: value => console.log('Siguiente:', value),
+    error: error => console.log('error:', error),
+    complete: () => console.log('completado:')
+}
+const intervalo$= new Observable<number>(subs =>{
+    let numero=0;
+     const interval= setInterval(() => {
+        numero++
+        subs.next(numero);
+        console.log('contador',numero)
+     },1000);
 
-    subs.complete();//se completa
+     return () => {
+         clearInterval(interval)//permite borrar el intervalo que esta ejecutando
+        console.log('intervalo destruido')
+        }
+});
 
-    subs.next('que hace?')//ya no se mostrara
+const subs= intervalo$.subscribe(num => console.log('Num:', num));
+const subs2= intervalo$.subscribe(num => console.log('Num:', num));
+const subs3= intervalo$.subscribe(num => console.log('Num:', num));
 
-})
-
-obs$.subscribe(console.log)
+//cancelar a los 3 segundos
+setTimeout(() =>{
+    subs.unsubscribe()
+    subs2.unsubscribe()
+    subs3.unsubscribe()
+},3000)
